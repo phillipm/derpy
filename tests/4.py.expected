@@ -1,0 +1,7 @@
+(program
+ (try
+  (suite (expr 3))
+  (((except e1 a) (suite (expr 4))) ((except e2) (suite (expr 5))))
+  (suite (expr 6))
+  (suite (expr 7))))
+

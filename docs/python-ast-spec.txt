@@ -1,0 +1,78 @@
+   ; <program> ::= (program <stmt>*)
+   ; <funcdef> ::= (def (<NAME> <NAME>*) <suite>)
+   ; <stmt> ::= <simple_stmt> | <compound_stmt>
+   ; <simple_stmt> ::= (begin <small_stmt>+)
+   ; <small_stmt> ::= <expr_stmt>
+   ;               |  <del_stmt>
+   ;               |  <pass_stmt>
+   ;               |  <flow_stmt> 
+   ;               |  <global_stmt>
+   ;               |  <nonlocal_stmt>
+   ;               |  <assert_stmt>
+   ; <expr_stmt> ::= (<augassign> (<name>+) <test>)
+   ;              |  (=           (<name>+) <test>)
+   ;              |  (expr <tuple_or_test>)
+   ; <augassign> ::= "+=" | "-=" | "*=" | "/="  | "%="
+   ;              |  "&=" | "|=" | "^=" | "<<=" | ">>=" | "**=" | "//="
+   ; <del_stmt> ::= (del <star_expr>)
+   ; <pass_stmt> ::= (pass)
+   ; <flow_stmt> ::= <break_stmt> | <continue_stmt> | <return_stmt> | <raise_stmt>
+   ; <break_stmt> ::= (break)
+   ; <continue_stmt> ::= (continue)
+   ; <return_stmt> ::= (return <test>*)
+   ; <raise_stmt> ::= (raise [ <test> [ <test> ] ])
+   ; <global_stmt> ::= (global <NAME>+) 
+   ; <nonlocal_stmt> ::= (nonlocal <NAME>+)
+   ; <assert_stmt> ::= (assert <test> [ <test> ])
+   ; <compound_stmt> ::= <if_stmt> | <while_stmt> | <for_stmt> | <funcdef>
+   ; <if_stmt> ::= (cond (<test> <suite>)+ [ (else <suite>) ])
+   ; <while_stmt> ::= (while <test> <suite> [ <suite> ])
+   ; <for_stmt> ::= (for <NAME> <test> <suite> [ <suite> ])                                
+   ; <try_stmt>      ::= (try <suite> (<catch>*) <maybe-else> <maybe-finally>)
+   ; <maybe-else>    ::= <suite> | #f
+   ; <maybe-finally> ::= <suite> | #f
+   ; <catch> ::= (except [ <test> [ <NAME> ] ])
+   ; <suite> ::= <simple_stmt> | (suite <stmt>+)
+   ; <test> ::= (if <or_test> <or_test> <test>)
+   ;         |  <or_test>
+   ;         |  <lambdef>
+   ; <lambdef> ::= (lambda (<NAME>*) <test>)
+   ; <or_test> ::= <and_test> | (or <and_test>+)
+   ; <and_test> ::= <not_test> | (and <not_test>+)
+   ; <not_test> ::= <comparison> | (not <not_test>)
+   ; <comparison> ::= <star_expr> | (comparison <star_expr> (<comp_op> <star_expr>)+)
+   ; <comp_op> ::= "<" | ">" | "==" | ">=" | "<=" | "<>" | "!= " | "in"
+   ;            |  "not-in" | "is" | "is-not"
+   ; <star_expr> ::= <expr> | (star <expr>)
+   ; <expr> ::= <xor_expr> | (bitwise-or <xor_expr>+)
+   ; <xor_expr> ::= <and_expr> | (bitwise-xor <and_expr>+)
+   ; <and_expr> ::= <shift_expr> | (bitwise-and <shift_expr>+)
+   ; <shift_expr> ::= <arith_expr> | (shift <arith_expr> (<shift_op> <arith_expr>)+)
+   ; <shift_op> ::= "<<" | ">>"
+   ; <arith_expr> ::= <term> | (arith <term> (<arith_op> <term>))
+   ; <arith_op> ::= "+" | "-"
+   ; <term> ::= <factor> | (term <factor> (<factor_op> <factor>))
+   ; <factor_op> ::= "*" | "/" | "%" | "//"
+   ; <factor> ::= <power> | (<unary_op> <factor>)
+   ; <unary_op> ::= "+" | "-" | "~"
+   ; <indexed> ::= <atom> | (indexed <atom> <trailer>+)
+   ; <power> ::= <indexed> | (power <indexed> <factor>)
+   ; <atom> ::= <tuple_or_test> | (tuple)
+   ;         |  (list <testlist>)
+   ;         |  <dict>
+   ;         |  <set>
+   ;         |  <NAME>
+   ;         |  <NUMBER>
+   ;         |  <STRING>
+   ;         |  Ellipsis
+   ;         |  None
+   ;         |  True
+   ;         |  False
+   ; <trailer> ::= (called <arglist>)
+   ;            |  (subscript <tuple_or_test>)
+   ;            |  (dot <NAME>)
+   ; <testlist> ::= <test>+ 
+   ; <tuple_or_test> ::= <test> | (tuple <test>+)
+   ; <dict> ::= (dict (<test> <test>)*) 
+   ; <set> ::= (set <test>*)
+   ; <arglist> ::= <test>+
