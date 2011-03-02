@@ -3,17 +3,14 @@ Phillip Mates
 u0284736
 -}
 
-module PythonLexer (lexInput, showLexOutput, main) where
+module PythonLexer (lexInput, showLexOutput) where
 
 -- Haskell imports
-import System.Environment
-import System.IO (hGetContents, hGetLine, stdin)
-import Debug.Trace (trace)
+--import Debug.Trace (trace)
 import Data.Char (chr, isSpace)
 import Numeric (readOct, readHex)
-import Data.List ((\\), stripPrefix, intersperse, elemIndex,
-                  delete, isPrefixOf, tails, union)
-import Data.Maybe (listToMaybe, catMaybes)
+import Data.List (stripPrefix, elemIndex, delete)
+import Data.Maybe (catMaybes)
 
 -- Lexer's Regular Expression Definitions
 import LexerRegex
@@ -38,9 +35,6 @@ data Token = Id String
            | Comment
            | LineCont
            deriving (Eq)
-
-main :: IO ()
-main = (hGetContents stdin) >>= showLexOutput . lexInput
 
 -- print list of Tokens, each on newline
 showLexOutput :: [Token] -> IO ()
@@ -276,8 +270,8 @@ tokenizeString :: String -> [String] -> ([Token], [String])
 --tokenizeString s pStack | trace ("tokenizeString " ++ show s ++ " with parenStack " ++ show pStack) False = undefined
 tokenizeString s (p:ps) = case getLongestMatchToken $ trimS of
   Nothing -> case trimS of
-                  (x:xs) -> ([Error $ "Not all of the line was matched: " ++ trimS], [])
                   "" -> ([], (p:ps))
+                  _ -> ([Error $ "Not all of the line was matched: " ++ trimS], [])
   (Just (t, rest)) -> case t of
                            -- match closing paren
                            Punct ")" -> (t : restTokens, restPStack)
@@ -290,8 +284,8 @@ tokenizeString s (p:ps) = case getLongestMatchToken $ trimS of
 
 tokenizeString s [] = case getLongestMatchToken $ trimS of
   Nothing -> case trimS of
-                  (x:xs) -> ([Error $ "Not all of the line was matched: " ++ trimS], [])
                   "" -> ([], [])
+                  _ -> ([Error $ "Not all of the line was matched: " ++ trimS], [])
   (Just (t, rest)) -> handleToken t rest []
   where
     trimS = dropWhile isSpace s
@@ -306,7 +300,7 @@ handleToken t restOfStr pStack =
                       then ((Error "Floating line escape char: \\") : t : restTokens, restPStack)
                       else case pStack of -- if we are in a nested paren, we don't care about LineCont tokens
                                 [] -> (t : restTokens, restPStack)
-                                (p:ps) -> (restTokens, restPStack)
+                                _ -> (restTokens, restPStack)
                       where (restTokens, restPStack) = tokenizeString restOfStr pStack
        Comment -> ([], pStack)
        -- add new paren
@@ -479,7 +473,7 @@ showVal (Error x) = "(ERROR \"" ++ x ++ "\")"
 showVal (Complex x) = "(LIT " ++ x ++ ")"
 showVal (OctHexBin x) = "(LIT " ++ x ++ ")"
 showVal (RString x) = "(rLIT \"" ++ x ++ "\")"
-showVal (RStringInt x y) = "(rLITint \"" ++ (escapeBackslash x) ++ "\")"
+showVal (RStringInt x _) = "(rLITint \"" ++ (escapeBackslash x) ++ "\")"
 showVal (Indent) = "(INDENT)"
 showVal (Dedent) = "(DEDENT)"
 showVal (Newline) = "(NEWLINE)"

@@ -6,7 +6,7 @@ import System.IO (hGetContents, hGetLine, stdin)
 import qualified PythonLexer as Pylex
 import PythonParser
 
---import DerParser
+import DerParser
 
 -- TODO: take in -l flag to specify between prelexed input
 main :: IO ()

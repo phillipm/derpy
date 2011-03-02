@@ -1,0 +1,28 @@
+-- Description:
+Name:           PyParser
+Version:        0.1
+Synopsis:       A Simple Python Lexer
+-- Copyright:
+License:        BSD3
+License-File:   LICENSE
+-- Other
+Author:         Phillip Mates
+Maintainer:     phillipmates@gmail.com
+Homepage:       http://eng.utah.edu/~mates
+
+Category:       Text
+Build-type:     Simple
+
+Cabal-Version:  >= 1.2
+
+Library
+  HS-Source-Dirs: src
+  Exposed-modules:
+  Build-Depends:  base == 4.3.*
+                , der-parser
+                , data-reify
+
+Executable pyparser
+  Main-Is: Main.hs
+  Hs-source-dirs: src
+  Ghc-Options: -Wall
