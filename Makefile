@@ -11,14 +11,16 @@ all:
 	ghc -c -O DerRegex.hs
 	ghc -c -O LexerRegex.hs
 	ghc -c -O PythonLexer.hs
-	ghc -main-is PythonParser -o pyparser PythonParser.hs PythonLexer.o DerRegex.o LexerRegex.o
+	ghc -c -O PythonParser.hs
+	ghc -o pyparser --make Main.hs -package data-reify
 
 # build lexer
 pylexer:
 	rm -f PythonLexer.o
 	ghc -c -O DerRegex.hs
 	ghc -c -O LexerRegex.hs
-	ghc -main-is PythonLexer -o pylexer PythonLexer.hs DerRegex.o LexerRegex.o
+	ghc -c -O PythonLexer.hs
+	ghc -o pylexer --make Main.hs
 	rm -f PythonLexer.o
 
 # target: help - Display callable targets.
