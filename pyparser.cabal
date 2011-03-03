@@ -19,8 +19,7 @@ Library
   HS-Source-Dirs: src
   Exposed-modules:
   Build-Depends:  base == 4.3.*
-                , der-parser
-                , data-reify
+                , derp
 
 Executable pyparser
   Main-Is: Main.hs
