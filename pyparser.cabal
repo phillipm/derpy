@@ -25,3 +25,8 @@ Executable pyparser
   Main-Is: Main.hs
   Hs-source-dirs: src
   Ghc-Options: -Wall
+
+Executable pylexer
+  Main-Is: LexerMain.hs
+  Hs-source-dirs: src
+  Ghc-Options: -Wall

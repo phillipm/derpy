@@ -1,5 +1,5 @@
 
 module PythonParser where
 
-test :: String -> String
-test t = t
+test123 :: String -> String
+test123 t = t

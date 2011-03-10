@@ -1,7 +1,7 @@
    ; <program> ::= (program <stmt>*)
    ; <funcdef> ::= (def (<NAME> <NAME>*) <suite>)
    ; <stmt> ::= <simple_stmt> | <compound_stmt>
-   ; <simple_stmt> ::= (begin <small_stmt>+)
+   ; <simple_stmt> ::= <small_stmt> | (begin <small_stmt>+)
    ; <small_stmt> ::= <expr_stmt>
    ;               |  <del_stmt>
    ;               |  <pass_stmt>
@@ -9,8 +9,8 @@
    ;               |  <global_stmt>
    ;               |  <nonlocal_stmt>
    ;               |  <assert_stmt>
-   ; <expr_stmt> ::= (<augassign> (<name>+) <test>)
-   ;              |  (=           (<name>+) <test>)
+   ; <expr_stmt> ::= (<augassign> (<test>+) <tuple_or_test>)
+   ;              |  (=           (<test>+) <tuple_or_test>)
    ;              |  (expr <tuple_or_test>)
    ; <augassign> ::= "+=" | "-=" | "*=" | "/="  | "%="
    ;              |  "&=" | "|=" | "^=" | "<<=" | ">>=" | "**=" | "//="
@@ -28,7 +28,7 @@
    ; <if_stmt> ::= (cond (<test> <suite>)+ [ (else <suite>) ])
    ; <while_stmt> ::= (while <test> <suite> [ <suite> ])
    ; <for_stmt> ::= (for <NAME> <test> <suite> [ <suite> ])
-   ; <try_stmt>      ::= (try <suite> (<catch>*) <maybe-else> <maybe-finally>)
+   ; <try_stmt>      ::= (try <suite> ((<catch> <suite>)*) <maybe-else> <maybe-finally>)
    ; <maybe-else>    ::= <suite> | #f
    ; <maybe-finally> ::= <suite> | #f
    ; <catch> ::= (except [ <test> [ <NAME> ] ])
@@ -68,7 +68,7 @@
    ;         |  None
    ;         |  True
    ;         |  False
-   ; <trailer> ::= (called <arglist>)
+   ; <trailer> ::= (called [ <arglist> ])
    ;            |  (subscript <tuple_or_test>)
    ;            |  (dot <NAME>)
    ; <testlist> ::= <test>+

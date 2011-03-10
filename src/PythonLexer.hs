@@ -3,7 +3,7 @@ Phillip Mates
 u0284736
 -}
 
-module PythonLexer (lexInput, showLexOutput) where
+module PythonLexer (lexInput, showLexOutput, Token(..)) where
 
 -- Haskell imports
 --import Debug.Trace (trace)
@@ -52,7 +52,6 @@ convertRStrings (t:ts) = cTok : convertRStrings ts
                   RStringInt s q -> InterStringLit ((escapeRaw s) ++ "\\\\\\n") q
                   RString s -> StringLit (escapeRaw s)
                   x -> x
-convertRStrings [] = []
 convertRStrings _ = []
 
 -- Convert escaped oct numbers to chars
@@ -468,7 +467,7 @@ showVal (Lit x) = "(LIT " ++ x ++ ")"
 showVal (Keyword x) = "(KEYWORD " ++ x ++ ")"
 showVal (Punct x) = "(PUNCT \"" ++ x ++ "\")"
 showVal (StringLit x) = "(LIT \"" ++ x ++ "\")"
-showVal (InterStringLit x y) = "(STRING \"" ++ x ++ "\")"
+showVal (InterStringLit x _) = "(STRING \"" ++ x ++ "\")"
 showVal (Error x) = "(ERROR \"" ++ x ++ "\")"
 showVal (Complex x) = "(LIT " ++ x ++ ")"
 showVal (OctHexBin x) = "(LIT " ++ x ++ ")"
@@ -479,6 +478,7 @@ showVal (Dedent) = "(DEDENT)"
 showVal (Newline) = "(NEWLINE)"
 showVal (Endmarker) = "(ENDMARKER)"
 showVal (LineCont) = "(LINECONT)"
+showVal (Comment) = "(COMMENT)"
 
 instance Show Token where show = showVal
 
