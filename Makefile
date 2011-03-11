@@ -31,7 +31,7 @@ run:
 
 # parse lexed input from STDIN
 parse:
-	./dist/build/pyparser/pyparser -l
+	./dist/build/pyparser/pyparser
 
 # lex input from STDIN
 lex: pylexer
