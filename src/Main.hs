@@ -144,21 +144,37 @@ for_stmt :: Parser String
 for_stmt =    ter "for" <~> ter "id" <~> ter "in" <~> test <~> ter ":" <~> suite
           <~> (eps "" <|> (ter "else" <~> ter ":" <~> suite
               ==> (\(_,(_,s))->"(" ++ s ++ ")")))
-          ==> (\(_,(i,(_,(t,(_,(s,e)))))) 
+          ==> (\(_,(i,(_,(t,(_,(s,e))))))
               -> (catWSpace ("(for " ++ i ++ " (" ++ t ++ ") (" ++ s ++ ")") e) ++ ")")
 
+
 try_stmt :: Parser String
-try_stmt = ter "try" <~> ter ":" <~> suite <~> (x1 <|> x2) ==> (\(_,(_,(s,e)))->"")
+try_stmt = ter "try" <~> ter ":" <~> suite <~> (x1 <|> x2)
+           ==> (\(_,(_,(s,e)))->"(try (" ++ s ++ ") " ++  e ++ ")")
   where x1 =     except_clause <~> ter ":" <~> suite <~> excptRep
-             <~> (eps "" <|> ter "else" <~> ter ":" <~> suite ==> (\_->""))
-             <~> (eps "" <|> ter "finally" <~> ter ":" <~> suite ==> (\_->""))
-             ==> (\_->"") -- FIXME: reduction
-        x2 = ter "finally" <~> ter ":" <~> suite ==> (\_->"") -- FIXME: reduction
+             <~> ((eps "" <|> ter "else" <~> ter ":" <~> suite
+                  ==> (\(_,(_,s)) -> "(" ++ s ++ ")")) ==> redFinally)
+             <~> ((eps "" <|> ter "finally" <~> ter ":" <~> suite
+                  ==> (\(_,(_,s)) -> "(" ++ s ++ ")")) ==> redFinally)
+             ==> redExcepts
+        x2 = ter "finally" <~> ter ":" <~> suite ==> (\(_,(_,s))->" #f (" ++ s ++ ")")
+
+        redFinally [] = "#f"
+        redFinally s = s
+
+
+
+        -- no extra excepts
+        redExcepts (e,(_,(s,([],(el,fi))))) = foldr (++) "" ["((", e, " (", s, "))) ", el, " ", fi]
+        redExcepts (e,(_,(s,(er,(el,fi))))) = foldr (++) "" ["((", e, " (", s, ")) ", er, ") ", el, " ", fi]
+        {-redExcepts (e,(_,(s,([],(el,fi))))) = "((" ++ e ++ " (" ++ s ++ "))) " ++ el ++ " " ++ fi-}
+        {-redExcepts (e,(_,(s,(er,(el,fi))))) = "((" ++ e ++ " (" ++ s ++ ")) " ++ er ++ ") " ++ el ++ " " ++ fi-}
 
 excptRep :: Parser String
 excptRep = p
   where p = eps "" <|> except_clause <~> ter ":" <~> suite <~> p
-            ==> (\(e,(_,(s,r))) -> catWSpace (e ++ "(" ++ s ++ ")") r)
+            ==> (\(e,(_,(s,r))) -> catWSpace ("(" ++ e ++ " (" ++ s ++ "))") r)
+
 
 
 except_clause :: Parser String
