@@ -14,9 +14,7 @@ main = do input <- (hGetContents stdin)
           {-putStrLn . show $ x-}
           {-putStrLn . show $ makeTokens x-}
           putStrLn . showNL $ toList $ runParse file_input $ makeTokens x
-{-main = do putStrLn . show $ runParse expr_stmt inp3-}
-          {-putStrLn . show $ runParse expr_stmt inp4-}
-          {-putStrLn . show $ runParse expr_stmt inp5-}
+
 showNL :: [String] -> String
 showNL (t:ts) = (show t) ++ "\n" ++ showNL ts
 showNL [] = ""
@@ -81,44 +79,46 @@ augassign =     ter "+=" <|> ter "-=" <|> ter "*=" <|> ter "/="
             <|> ter "<<=" <|> ter ">>=" <|> ter "**=" <|> ter "//="
 
 del_stmt :: Parser String
-del_stmt = ter "del" <~> star_expr ==> (\_->"") -- FIXME: reduction
+del_stmt = ter "del" <~> star_expr ==> (\(_,e)-> "(del " ++ e ++ ")")
 
 pass_stmt :: Parser String
-pass_stmt = ter "pass" ==> (\_->"") -- FIXME: reduction
+pass_stmt = ter "pass" ==> (\_->"(pass)")
 
 flow_stmt :: Parser String
 flow_stmt = break_stmt <|> continue_stmt <|> return_stmt <|> raise_stmt
 
 break_stmt :: Parser String
-break_stmt = ter "break" ==> (\_->"") -- FIXME: reduction
+break_stmt = ter "break" ==> (\_->"(break)")
 
 continue_stmt :: Parser String
-continue_stmt = ter "continue" ==> (\_->"") -- FIXME: reduction
+continue_stmt = ter "continue" ==> (\_->"continue")
 
 return_stmt :: Parser String
-return_stmt = ter "return" <~> (eps "" <|> testlist) ==> (\(_,tl) -> catWSpace "return" tl)
+return_stmt = ter "return" <~> (eps "" <|> testlist) ==> (\(_,tl) -> (catWSpace "(return" tl) ++ ")")
 
 raise_stmt :: Parser String
 raise_stmt =     ter "raise"
             <~> (eps "" <|> (test <~>
-                              (eps "" <|> ter "from" <~> test ==> (\(f,t) -> catWSpace f t))
-                              ==> (\_->""))
-                ) ==> (\(s1,s2) -> catWSpace s1 s2) --FIXME: reduction
+                              (eps "" <|> ter "from" <~> test ==> (\(_,t) -> t))
+                              ==> (\(t,f)-> catWSpace t f))
+                ) ==> (\(s1,s2) -> "(" ++ (catWSpace s1 s2) ++ ")")
 
 global_stmt :: Parser String
-global_stmt = ter "global" <~> ter "id" <~> idRep ==> (\_->"") -- FIXME: reduction
+global_stmt = ter "global" <~> ter "id" <~> idRep
+              ==> (\(_,(i,ir))-> "(global " ++ (catWSpace i ir) ++ ")")
 
 idRep :: Parser String
 idRep = p
-  where p = eps "" <|> ter "," <~> ter "id" <~> p ==> (\_->"") -- FIXME: reduction
+  where p = eps "" <|> ter "," <~> ter "id" <~> p ==> (\(_,(i,r))-> catWSpace i r)
 
 nonlocal_stmt :: Parser String
-nonlocal_stmt = ter "nonlocal" <~> ter "id" <~> idRep ==> (\_->"") -- FIXME: reduction
+nonlocal_stmt = ter "nonlocal" <~> ter "id" <~> idRep
+                ==> (\(_,(i,ir))->"(nonlocal " ++ (catWSpace i ir) ++ ")")
 
 assert_stmt:: Parser String
 assert_stmt =     ter "assert" <~> test
-              <~> (eps "" <|> (ter "," <~> test) ==> (\_->""))
-              ==> (\_->"") -- FIXME: reduction
+              <~> (eps "" <|> (ter "," <~> test) ==> (\(_,t)-> t))
+              ==> (\(_,(t1,t2))->"(assert " ++ (catWSpace t1 t2) ++ ")")
 
 compound_stmt :: Parser String
 compound_stmt = if_stmt <|> while_stmt <|> for_stmt <|> try_stmt <|> funcdef
@@ -126,25 +126,29 @@ compound_stmt = if_stmt <|> while_stmt <|> for_stmt <|> try_stmt <|> funcdef
 if_stmt :: Parser String
 if_stmt =     ter "if" <~> test <~> ter ":" <~> suite
           <~> elifRep
-          <~> (eps "" <|> (ter "else" <~> ter ":" <~> suite ==> (\_->"")))
-          ==> (\_->"") -- FIXME: reduction
+          <~> (eps "" <|> (ter "else" <~> ter ":" <~> suite ==> (\(_,(_,s))->"(else " ++ s ++ ")")))
+          ==> (\(_,(t,(_,(s,(elif,els)))))
+              -> (catWSpace (catWSpace ("(cond (" ++ t ++ " (" ++ s ++ ")") elif) els) ++ ")")
 
 elifRep :: Parser String
 elifRep = p
-  where p = eps "" <|> ter "elif" <~> test <~> ter ":" <~> suite <~> p ==> (\_->"") -- FIXME: reduction
+  where p = eps "" <|> ter "elif" <~> test <~> ter ":" <~> suite <~> p
+            ==> (\(_,(t,(_,(s,r)))) -> catWSpace ("(" ++ t ++ " (" ++ s ++ "))") r)
 
 while_stmt :: Parser String
-while_stmt =    ter "while" <~> test <~> ter ":"
-            <~> (eps "" <|> ter "else" <~> ter ":" <~> suite ==> (\_->""))
-            ==> (\_->"") -- FIXME: reduction
+while_stmt =    ter "while" <~> test <~> ter ":" <~> suite
+            <~> (eps "" <|> ter "else" <~> ter ":" <~> suite ==> (\(_,(_,s))-> "(else (" ++ s ++ "))"))
+            ==> (\(_,(t,(_,(s,(els))))) -> (catWSpace ("(while " ++ t ++ " (" ++ s ++ ")") els) ++ ")")
 
 for_stmt :: Parser String
 for_stmt =    ter "for" <~> ter "id" <~> ter "in" <~> test <~> ter ":" <~> suite
-          <~> (eps "" <|> (ter "else" <~> ter ":" <~> suite ==> (\_->"")))
-          ==> (\_->"") -- FIXME: reduction
+          <~> (eps "" <|> (ter "else" <~> ter ":" <~> suite
+              ==> (\(_,(_,s))->"(" ++ s ++ ")")))
+          ==> (\(_,(i,(_,(t,(_,(s,e)))))) 
+              -> (catWSpace ("(for " ++ i ++ " (" ++ t ++ ") (" ++ s ++ ")") e) ++ ")")
 
 try_stmt :: Parser String
-try_stmt = ter "try" <~> ter ":" <~> suite <~> (x1 <|> x2) ==> (\_->"") -- FIXME: reduction
+try_stmt = ter "try" <~> ter ":" <~> suite <~> (x1 <|> x2) ==> (\(_,(_,(s,e)))->"")
   where x1 =     except_clause <~> ter ":" <~> suite <~> excptRep
              <~> (eps "" <|> ter "else" <~> ter ":" <~> suite ==> (\_->""))
              <~> (eps "" <|> ter "finally" <~> ter ":" <~> suite ==> (\_->""))
@@ -153,14 +157,15 @@ try_stmt = ter "try" <~> ter ":" <~> suite <~> (x1 <|> x2) ==> (\_->"") -- FIXME
 
 excptRep :: Parser String
 excptRep = p
-  where p = eps "" <|> except_clause <~> ter ":" <~> suite <~> p ==> (\_->"") -- FIXME: reduction
+  where p = eps "" <|> except_clause <~> ter ":" <~> suite <~> p
+            ==> (\(e,(_,(s,r))) -> catWSpace (e ++ "(" ++ s ++ ")") r)
 
 
 except_clause :: Parser String
 except_clause =     ter "except"
-                <~> (eps "" <|> (test <~> (eps "" <|> ter "as" <~> ter "id" ==> (\_->""))
-                                ==> (\_->"")))
-                ==> (\_->"") -- FIXME: reduction
+                <~> (eps "" <|> (test <~> (eps "" <|> ter "as" <~> ter "id" ==> (\(_,i)->i))
+                                ==> (\(t,as)-> catWSpace t as)))
+                ==> (\(_,t)-> (catWSpace "(except" t) ++ ")")
 
 suite :: Parser String
 suite =     simple_stmt
@@ -333,7 +338,7 @@ testlist = test <~> testComRep <~> (eps "" <|> ter ",") ==> (\(s1,(s2,_))-> catW
 
 -- just like arglist
 tuple_or_test :: Parser String
-tuple_or_test = test <~> argRep <~> (eps "" <|> ter ",") ==> red --FIXME: reduction
+tuple_or_test = test <~> argRep <~> (eps "" <|> ter ",") ==> red
   where red (x, ([],[])) = "(expr " ++ x ++ ")"
         red (x, (y,_)) = "(tuple " ++ x ++ " " ++ y ++ ")"
 
