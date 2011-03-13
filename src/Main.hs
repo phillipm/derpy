@@ -2,6 +2,8 @@
 import System.Environment
 import System.IO (hGetContents, hGetLine, stdin)
 import Debug.Trace (trace)
+import Data.Set (Set)
+import qualified Data.Set as Set
 
 import qualified PythonLexer as Pylex
 import PythonParser
@@ -9,7 +11,7 @@ import PythonParser
 import Text.Derp
 
 inp :: [Token]
-inp = map (\x -> Token x x) $ words "( p )"
+inp = [Token "endmarker" "endmarker"]
 inp2 :: [Token]
 inp2 = [Token "def" "def", Token "id" "test", Token "(" "(", Token "id" "p1", Token "," ",", Token "id" "p2", Token ")" ")", Token ":" ":"]
 inp3 :: [Token]
@@ -22,20 +24,25 @@ inp5 = [Token "[" "[", Token "lit" "1", Token "," ",", Token "lit" "2", Token ",
 -- TODO: take in -l flag to specify between prelexed input
 main :: IO ()
 main = do input <- (hGetContents stdin)
-          putStrLn . show $ runParse expr_stmt $ makeTokens . Pylex.lexInput $ input
-{-
-main = do putStrLn . show $ runParse expr_stmt inp3
-          putStrLn . show $ runParse expr_stmt inp4
-          putStrLn . show $ runParse expr_stmt inp5
--}
+          let x = Pylex.lexInput $ input
+          putStrLn . show $ x
+          putStrLn . show $ makeTokens x
+          putStrLn . showNL $ Set.toList $ runParse file_input $ makeTokens x
+        where dropLast2 x = take ((length x) - 2) x
+{-main = do putStrLn . show $ runParse expr_stmt inp3-}
+          {-putStrLn . show $ runParse expr_stmt inp4-}
+          {-putStrLn . show $ runParse expr_stmt inp5-}
+showNL :: [String] -> String
+showNL (t:ts) = (show t) ++ "\n" ++ showNL ts
+showNL [] = ""
 
 -- -- -- -- -- -- -- --
 -- Parsing Functions
 -- -- -- -- -- -- -- --
 file_input :: Parser String
-file_input = file_inputRep <~> ter "endmarker" ==> reduce
-  where reduce (x,_) | trace ("prog") False = undefined
-        reduce (x,_) = "(program " ++ x ++ ")"
+file_input = file_inputRep <~> ter "endmarker" ==> red
+  where red (x,_) | trace ("prog") False = undefined
+        red (x,_) = "(program " ++ x ++ ")"
 
 file_inputRep :: Parser String
 file_inputRep = p
@@ -49,7 +56,7 @@ funcdef = ter "def" <~> ter "id" <~> parameters <~> ter ":" <~> suite ==>
             "(def (" ++ fname ++ " " ++ params ++ ") (" ++ rest ++ "))")
 
 parameters :: Parser String
-parameters = ter "(" <~> paramlist <~> ter ")" ==> (\(s1,(s2,s3)) -> s2)
+parameters = ter "(" <~> paramlist <~> ter ")" ==> (\(_,(pl,_)) -> pl)
 
 paramlist :: Parser String
 paramlist =     eps ""
@@ -65,7 +72,8 @@ stmt :: Parser String
 stmt = simple_stmt <|> compound_stmt
 
 simple_stmt :: Parser String
-simple_stmt = small_stmt <|> small_stmtRep <~> (eps "" <|> ter ";") <~> ter "newline" ==> (\(x,_)->x)
+simple_stmt = small_stmt <~> small_stmtRep <~> (eps "" <|> ter ";") <~> ter "newline"
+              ==> (\(x,(x2,_)) -> catWSpace x x2)
 
 small_stmt :: Parser String
 small_stmt =     expr_stmt <|> del_stmt <|> pass_stmt <|> flow_stmt
@@ -74,16 +82,16 @@ small_stmt =     expr_stmt <|> del_stmt <|> pass_stmt <|> flow_stmt
 small_stmtRep :: Parser String
 small_stmtRep = p
   where p =     eps ""
-            <|> ter ";" <~> small_stmt <~> p ==> (\(s1,(s2,s3)) -> "(" ++ (catWSpace s2 s3) ++ ")")
+            <|> ter ";" <~> small_stmt <~> p ==> (\(_,(stm,r)) -> "(" ++ (catWSpace stm r) ++ ")")
 
 expr_stmt :: Parser String
 expr_stmt =     testlist <~> augassign <~> testlist
-                 ==> reduce
+                 ==> red
             <|> testlist <~> ter "=" <~> testlist
                  ==> (\(var,(eq,by))-> "(" ++ eq ++ " (" ++ var ++ ") " ++ by ++ ")")
             <|> tuple_or_test
-    where reduce (var,(aug,by)) | trace ("expr") False = undefined
-          reduce (var,(aug,by)) = "\"" ++ aug ++ "\" " ++ "(" ++ var ++ ") " ++ by
+    where red (var,(aug,by)) | trace ("expr") False = undefined
+          red (var,(aug,by)) = "\"" ++ aug ++ "\" " ++ "(" ++ var ++ ") " ++ by
 
 augassign :: Parser String
 augassign =     ter "+=" <|> ter "-=" <|> ter "*=" <|> ter "/="
@@ -178,79 +186,99 @@ suite =     simple_stmt
             ==> (\(nw,(ind,(stR,ddnt))) -> "suite " ++ stR)
 
 stmtRep :: Parser String
-stmtRep = stmt <~> p ==> (\_->"") -- TODO: fix reduction
-  where p = eps "" <|> stmt <~> p ==> (\(s1,s2) -> catWSpace s1 s2)
+stmtRep = stmt <~> p ==> (\(s,r)-> catWSpace s r)
+  where p = eps "" <|> stmt <~> p ==> (\(s,r) -> catWSpace s r)
 
 test :: Parser String
-test =     or_test <~> ter "if" <~> or_test <~> ter "else" <~> test ==> (\_ -> "test") -- FIXME: reduction
+test =     or_test <~> ter "if" <~> or_test <~> ter "else" <~> test ==> red
        <|> or_test <|> lambdef
+  where red (p1,(_,(p2,(_,p3)))) = "(expr (if " ++ p1 ++ " " ++ p2 ++ " " ++ p3 ++ "))"
 
 lambdef :: Parser String
-lambdef = ter "lamda" <~> (eps "" <|> paramlist) <~> ter ":" <~> test ==> (\_->"") -- FIXME: reduction
+lambdef = ter "lambda" <~> (eps "" <|> paramlist) <~> ter ":" <~> test ==> red
+  where red (l,(p,(_,t))) = "(expr (lambda (" ++ p ++ ") (" ++ t ++ ")))"
 
 or_test :: Parser String
-or_test = and_test <~> and_testRep ==> (\(s1,s2) -> catWSpace s1 s2) -- FIXME: reduction
+or_test = and_test <~> and_testRep ==> red
+  where red (at, []) = at
+        red (at, atr) = "(or " ++ (catWSpace at atr) ++ ")"
 
 and_testRep :: Parser String
 and_testRep = p
-  where p = eps "" <|> ter "or" <~> and_test <~> p ==> (\_->"") -- FIXME: reduction
+  where p = eps "" <|> ter "or" <~> and_test <~> p
+            ==> (\(_,(at,r)) -> catWSpace at r)
 
 and_test:: Parser String
-and_test = not_test <~> not_testRep ==> (\(s1,s2)-> catWSpace s1 s2) -- FIXME: reduction
+and_test = not_test <~> not_testRep ==> red
+  where red (nt,[]) = nt
+        red (nt, ntr) = "(and " ++ nt ++ " " ++ ntr ++ ")"
 
 not_testRep :: Parser String
 not_testRep = p
-  where p = eps "" <|> ter "and" <~> not_test <~> p ==> (\_->"") -- FIXME: reduction
+  where p = eps "" <|> ter "and" <~> not_test <~> p
+            ==> (\(_,(nt,r)) -> catWSpace nt r)
 
 not_test :: Parser String
-not_test =    ter "not" <~> not_test ==> (\(s1,s2)-> catWSpace s1 s2) -- FIXME: reduction
+not_test =    ter "not" <~> not_test ==> (\(_,s2)-> "(not " ++ s2 ++ ")")
           <|> comparison
 
 comparison :: Parser String
-comparison = star_expr <~> comp_opRep ==> (\(e,c)-> e ++ c) -- FIXME: reduction
+comparison = star_expr <~> comp_opRep ==> red
+  where red (e,[]) = e
+        red (e,c) = "(comparison " ++ e ++ " " ++ c ++ ")"
 
 comp_opRep :: Parser String
 comp_opRep = p
-  where p = eps "" <|> comp_op <~> star_expr <~> p ==> (\(c,(e,r))-> c ++ e ++ r) -- FIXME: reduction
+  where p = eps "" <|> comp_op <~> star_expr <~> p
+             ==> (\(cop,(e,r)) -> catWSpace ("(" ++ cop ++ " " ++ e ++ ")") r)
 
 comp_op :: Parser String
 comp_op =     ter "<" <|> ter ">" <|> ter "==" <|> ter ">="
           <|> ter "<=" <|> ter "<>" <|> ter "!=" <|> ter "in"
-          <|> (ter "not" <~> ter "in" ==> (\_->""))
-          <|> (ter "is" <~> ter "not" ==> (\_->"")) -- FIXME: reduction
+          <|> (ter "not" <~> ter "in" ==> (\_->"not-in"))
+          <|> (ter "is" <~> ter "not" ==> (\_->"is-not"))
 
 star_expr :: Parser String
-star_expr = (eps "" <|> ter "*") <~> expr ==> (\(s,e) -> catWSpace s e) -- FIXME: reduction
+star_expr = (eps "" <|> ter "*") <~> expr ==> red
+  where red ([], e) = e
+        red (s, e) = "(star " ++ e ++ ")"
 
 expr :: Parser String
-expr = xor_expr <~> xor_exprRep ==> reduce
-  where reduce (s1,s2) | trace ("expr1") False = undefined
-        reduce (s1,s2) = catWSpace s1 s2
+expr = xor_expr <~> xor_exprRep ==> red
+  where red (xe, []) = xe
+        red (xe, xer) = "bitwise-xor (" ++ xe ++ ") (" ++ xer ++ "))"
 
 xor_exprRep :: Parser String
 xor_exprRep = p
-  where p = eps "" <|> ter "|" <~> xor_expr <~> p ==> (\(s1,(s2,s3)) -> "") -- FIXME: reduction
+  where p = eps "" <|> ter "|" <~> xor_expr <~> p ==> (\(_,(s2,s3)) -> catWSpace s2 s3)
 
 xor_expr :: Parser String
-xor_expr = and_expr <~> and_exprRep ==> (\(s1,s2)-> s1 ++ s2) -- FIXME: reduction
+xor_expr = and_expr <~> and_exprRep ==> red
+  where red (ae, []) = ae
+        red (ae, aer) = "(bitwise-or (" ++ ae ++ ") (" ++ aer ++ "))"
 
 and_exprRep :: Parser String
 and_exprRep = p
-  where p = eps "" <|> ter "^" <~> and_expr <~> p ==> (\(s1,(s2,s3)) -> "") -- FIXME: reduction
+  where p = eps "" <|> ter "^" <~> and_expr <~> p ==> (\(_,(s2,s3)) -> catWSpace s2 s3)
 
 and_expr :: Parser String
-and_expr = shift_expr <~> shift_exprRep ==> (\(s1,s2)-> catWSpace s1 s2) -- FIXME: reduction
+and_expr = shift_expr <~> shift_exprRep ==> red
+  where red (se, []) = se
+        red (se, ser) = "(bitwise-and (" ++ se ++ ") (" ++ ser ++ "))"
 
 shift_exprRep :: Parser String
 shift_exprRep = p
-  where p = eps "" <|> ter "&" <~> shift_expr <~> p ==> (\(s1,(s2,s3)) -> "") -- FIXME: reduction
+  where p = eps "" <|> ter "&" <~> shift_expr <~> p ==> (\(_,(s2,s3)) -> catWSpace s2 s3)
 
 shift_expr :: Parser String
-shift_expr = arith_expr <~> arith_exprRep ==> (\(s1,s2)-> catWSpace s1 s2) -- FIXME: reduction
+shift_expr = arith_expr <~> arith_exprRep ==> red
+  where red (ae, []) = ae
+        red (ae, aer) = "shift " ++ catWSpace ae aer
 
 arith_exprRep :: Parser String
 arith_exprRep = p
-  where p = eps "" <|> (ter "<<" <|> ter ">>") <~> arith_expr <~> p ==> (\(s1,(s2,s3)) -> "") -- FIXME: reduction
+  where p = eps "" <|> (ter "<<" <|> ter ">>") <~> arith_expr <~> p
+            ==> (\(op,(ae,r)) -> catWSpace ("(" ++ op ++ " " ++ ae ++ ")") r)
 
 arith_expr :: Parser String
 arith_expr = term <~> addRep ==> red
@@ -259,15 +287,19 @@ arith_expr = term <~> addRep ==> red
 
 addRep :: Parser String
 addRep = p
-  where p = eps "" <|> (ter "+" <|> ter "-") <~> term <~> p ==> (\(op,(var,rest))-> "(\"" ++ op ++ "\" " ++ var ++ ")" ++ rest) -- FIXME: reduction
+  where p = eps "" <|> (ter "+" <|> ter "-") <~> term <~> p
+             ==> (\(op,(var,rest))-> "(\"" ++ op ++ "\" " ++ var ++ ")" ++ rest)
 
 term :: Parser String
-term = factor <~> multRep ==> (\(s1,s2)-> catWSpace s1 s2) -- FIXME: reduction
+term = factor <~> multRep ==> red
+  where red (f, []) = f
+        red (f, op) = "term " ++ catWSpace f op
 
 multRep :: Parser String
 multRep = p
   where p = eps "" <|>
-           (ter "*" <|> ter "/" <|> ter "%" <|> ter "//") <~> factor <~> p ==> (\_->"") -- FIXME: reduction
+           (ter "*" <|> ter "/" <|> ter "%" <|> ter "//") <~> factor <~> p
+              ==> (\(op,(f,r))-> catWSpace ("(" ++ op ++ " " ++ f ++ ")") r)
 
 
 factor :: Parser String
@@ -303,8 +335,12 @@ strRep = p
 trailer :: Parser String
 trailer = p
   where
-    p = ter "(" <~> (eps "" <|> arglist) <~> ter ")" ==> (\(s1,(s2,s3)) -> s1 ++ s2 ++ s3 ) <|>
-        ter "[" <~> tuple_or_test <~> ter "]" ==> (\_ -> "") -- <|> ter "." <~> NAME
+    p =     ter "(" <~> (eps "" <|> arglist) <~> ter ")"
+              ==> (\(_,(args,_)) -> "(called " ++ args ++ ")")
+        <|> ter "[" <~> tuple_or_test <~> ter "]"
+              ==> (\(_,(t,_)) -> "subscript " ++ t)
+        <|> ter "." <~> ter "id"
+              ==> (\(_,n) -> "dot " ++ n)
 
 trailerRep:: Parser String
 trailerRep = p
@@ -315,14 +351,14 @@ testlist = test <~> testComRep <~> (eps "" <|> ter ",") ==> (\(s1,(s2,_))-> catW
 
 -- just like arglist
 tuple_or_test :: Parser String
-tuple_or_test = test <~> argRep <~> (eps "" <|> ter ",") ==> out --FIXME: reduction
-  where out (x, ([],[])) = "(expr (" ++ x ++ "))"
-        out (x, (y,z)) = "(tuple " ++ x ++ " " ++ y ++ " " ++ z ++ ")"
+tuple_or_test = test <~> argRep <~> (eps "" <|> ter ",") ==> red --FIXME: reduction
+  where red (x, ([],[])) = "(expr (" ++ x ++ "))"
+        red (x, (y,z)) = "(tuple " ++ x ++ " " ++ y ++ " " ++ z ++ ")"
 
 argRep :: Parser String
 argRep = p
   where
-    p = eps "" <|> ter "," <~> test <~> p ==> (\_ -> "")
+    p = eps "" <|> ter "," <~> test <~> p ==> (\(_,(t,r)) -> catWSpace t r)
 
 dictorsetmaker :: Parser String
 dictorsetmaker = x1 <|> x2
@@ -338,7 +374,7 @@ testColRep = p
   where p = eps "" <|> ter "," <~> test <~> ter ":" <~> test <~> p ==> (\_->"") -- FIXME: reduction
 
 arglist :: Parser String
-arglist = test <~> argRep ==> (\_->"") <|> ter ","
+arglist = test <~> argRep <~> (eps "" <|> ter ",") ==> (\(t,(ar,_)) -> catWSpace t ar)
 
 -- -- -- -- -- -- -- --
 -- Util Functions
