@@ -1,34 +1,19 @@
 -- Haskell imports
-import System.Environment
-import System.IO (hGetContents, hGetLine, stdin)
-import Debug.Trace (trace)
-import Data.Set (Set)
-import qualified Data.Set as Set
+import System.IO (hGetContents, stdin)
+import Data.Set (toList)
 
 import qualified PythonLexer as Pylex
-import PythonParser
+{-import PythonParser-}
 
 import Text.Derp
-
-inp :: [Token]
-inp = [Token "endmarker" "endmarker"]
-inp2 :: [Token]
-inp2 = [Token "def" "def", Token "id" "test", Token "(" "(", Token "id" "p1", Token "," ",", Token "id" "p2", Token ")" ")", Token ":" ":"]
-inp3 :: [Token]
-inp3 = [Token "id" "x", Token "=" "=", Token "lit" "5"]
-inp4 :: [Token]
-inp4 = [Token "lit" "4", Token "**" "**", Token "lit" "5"]
-inp5 :: [Token]
-inp5 = [Token "[" "[", Token "lit" "1", Token "," ",", Token "lit" "2", Token "," ",", Token "lit" "3", Token "]" "]"]
 
 -- TODO: take in -l flag to specify between prelexed input
 main :: IO ()
 main = do input <- (hGetContents stdin)
           let x = Pylex.lexInput $ input
-          putStrLn . show $ x
-          putStrLn . show $ makeTokens x
-          putStrLn . showNL $ Set.toList $ runParse file_input $ makeTokens x
-        where dropLast2 x = take ((length x) - 2) x
+          {-putStrLn . show $ x-}
+          {-putStrLn . show $ makeTokens x-}
+          putStrLn . showNL $ toList $ runParse file_input $ makeTokens x
 {-main = do putStrLn . show $ runParse expr_stmt inp3-}
           {-putStrLn . show $ runParse expr_stmt inp4-}
           {-putStrLn . show $ runParse expr_stmt inp5-}
@@ -40,9 +25,7 @@ showNL [] = ""
 -- Parsing Functions
 -- -- -- -- -- -- -- --
 file_input :: Parser String
-file_input = file_inputRep <~> ter "endmarker" ==> red
-  where red (x,_) | trace ("prog") False = undefined
-        red (x,_) = "(program " ++ x ++ ")"
+file_input = file_inputRep <~> ter "endmarker" ==> (\(x,_) -> "(program " ++ x ++ ")")
 
 file_inputRep :: Parser String
 file_inputRep = p
@@ -66,7 +49,7 @@ paramlist =     eps ""
 paramlistRep :: Parser String
 paramlistRep = p
   where p =     eps ""
-            <|> ter "," <~> ter "id" <~> p ==> (\(s1,(s2,s3)) -> s2)
+            <|> ter "," <~> ter "id" <~> p ==> (\(_,(name,_)) -> name)
 
 stmt :: Parser String
 stmt = simple_stmt <|> compound_stmt
@@ -90,8 +73,7 @@ expr_stmt =     testlist <~> augassign <~> testlist
             <|> testlist <~> ter "=" <~> testlist
                  ==> (\(var,(eq,by))-> "(" ++ eq ++ " (" ++ var ++ ") " ++ by ++ ")")
             <|> tuple_or_test
-    where red (var,(aug,by)) | trace ("expr") False = undefined
-          red (var,(aug,by)) = "\"" ++ aug ++ "\" " ++ "(" ++ var ++ ") " ++ by
+    where red (var,(aug,by)) = "\"" ++ aug ++ "\" " ++ "(" ++ var ++ ") " ++ by
 
 augassign :: Parser String
 augassign =     ter "+=" <|> ter "-=" <|> ter "*=" <|> ter "/="
@@ -114,7 +96,7 @@ continue_stmt :: Parser String
 continue_stmt = ter "continue" ==> (\_->"") -- FIXME: reduction
 
 return_stmt :: Parser String
-return_stmt = ter "return" <|> testlist
+return_stmt = ter "return" <~> (eps "" <|> testlist) ==> (\(_,tl) -> catWSpace "return" tl)
 
 raise_stmt :: Parser String
 raise_stmt =     ter "raise"
@@ -183,7 +165,7 @@ except_clause =     ter "except"
 suite :: Parser String
 suite =     simple_stmt
         <|> ter "newline" <~> ter "indent" <~> stmtRep <~> ter "dedent"
-            ==> (\(nw,(ind,(stR,ddnt))) -> "suite " ++ stR)
+            ==> (\(_,(_,(stR,_))) -> "suite " ++ stR)
 
 stmtRep :: Parser String
 stmtRep = stmt <~> p ==> (\(s,r)-> catWSpace s r)
@@ -196,7 +178,7 @@ test =     or_test <~> ter "if" <~> or_test <~> ter "else" <~> test ==> red
 
 lambdef :: Parser String
 lambdef = ter "lambda" <~> (eps "" <|> paramlist) <~> ter ":" <~> test ==> red
-  where red (l,(p,(_,t))) = "(expr (lambda (" ++ p ++ ") (" ++ t ++ ")))"
+  where red (_,(p,(_,t))) = "(expr (lambda (" ++ p ++ ") (" ++ t ++ ")))"
 
 or_test :: Parser String
 or_test = and_test <~> and_testRep ==> red
@@ -241,7 +223,7 @@ comp_op =     ter "<" <|> ter ">" <|> ter "==" <|> ter ">="
 star_expr :: Parser String
 star_expr = (eps "" <|> ter "*") <~> expr ==> red
   where red ([], e) = e
-        red (s, e) = "(star " ++ e ++ ")"
+        red (_, e) = "(star " ++ e ++ ")"
 
 expr :: Parser String
 expr = xor_expr <~> xor_exprRep ==> red
@@ -352,8 +334,8 @@ testlist = test <~> testComRep <~> (eps "" <|> ter ",") ==> (\(s1,(s2,_))-> catW
 -- just like arglist
 tuple_or_test :: Parser String
 tuple_or_test = test <~> argRep <~> (eps "" <|> ter ",") ==> red --FIXME: reduction
-  where red (x, ([],[])) = "(expr (" ++ x ++ "))"
-        red (x, (y,z)) = "(tuple " ++ x ++ " " ++ y ++ " " ++ z ++ ")"
+  where red (x, ([],[])) = "(expr " ++ x ++ ")"
+        red (x, (y,_)) = "(tuple " ++ x ++ " " ++ y ++ ")"
 
 argRep :: Parser String
 argRep = p
@@ -399,6 +381,7 @@ toToken Pylex.Indent = Token "indent" "indent"
 toToken Pylex.Dedent = Token "dedent" "dedent"
 toToken Pylex.Endmarker = Token "endmarker" "endmarker"
 toToken Pylex.LineCont = Token "linecont" "linecont"
+toToken _ = error "incorrect input token from lexer"
 
 catWSpace :: String -> String -> String
 catWSpace x (y:ys) = x ++ " " ++ (y:ys)
