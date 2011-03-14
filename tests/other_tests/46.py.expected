@@ -1,0 +1,18 @@
+(program
+ (def
+  (gamma)
+  (suite
+   (= (result) 0.0)
+   (= (i) 1)
+   (while
+    (comparison i ("<=" 500000))
+    (suite
+     ("+="
+      (result)
+      (arith
+       (term 1.0 ("/" i))
+       ("-"
+        (indexed math (dot log) (called (term (arith i ("+" 1.0)) ("/" i)))))))
+     ("+=" (i) 1)))
+   (return result))))
+

@@ -1,3 +1,5 @@
+-- Phillip Mates u0284736
+
 module LexerRegex
 where
 
@@ -219,3 +221,5 @@ singleQuoteShortContRegex =
     <|> seqOf "\\\'")
   <.>
   (lit '\'' <|> lit '\\')
+
+-- Phillip Mates u0284736

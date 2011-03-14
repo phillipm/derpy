@@ -1,0 +1,2 @@
+(program (= (l) (list "spam" "ham" 314 23)))
+

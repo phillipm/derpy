@@ -1,0 +1,16 @@
+(program
+ (def
+  (geometricSeriesSum x n)
+  (suite
+   (= (sum) 0)
+   (= (i) 0)
+   (while
+    (comparison i ("<=" n))
+    (suite
+     (= (prod) 1)
+     (= (j) 0)
+     (while (comparison j ("<" i)) (suite ("*=" (prod) x) ("+=" (j) 1)))
+     ("+=" (sum) prod)
+     ("+=" (i) 1)))
+   (return sum))))
+

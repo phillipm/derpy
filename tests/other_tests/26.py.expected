@@ -1,0 +1,10 @@
+(program
+ (=
+  (codes)
+  (dict
+   ("emph" (tuple "<em>" "</em>"))
+   ("strong" (tuple "<strong>" "</strong>"))
+   ("module" (tuple "<em><code>" "</code></em>"))
+   ("code" (tuple "<code>" "</code>"))
+   ("title" (tuple "<cite>" "</cite>")))))
+

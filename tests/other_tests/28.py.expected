@@ -1,0 +1,22 @@
+(program
+ (= (shape) (indexed int (called (indexed input (called menu)))))
+ (while
+  (comparison shape ("!=" 4))
+  (suite
+   (cond
+    ((comparison shape ("==" 1))
+     (suite
+      (= (length) (indexed float (called (indexed input (called "Length: ")))))
+      (expr (indexed print (called "Area of square = " (power length 2))))))
+    ((comparison shape ("==" 2))
+     (suite
+      (= (length) (indexed float (called (indexed input (called "Length: ")))))
+      (= (width) (indexed float (called (indexed input (called "Width: ")))))
+      (expr
+       (indexed
+        print
+        (called "Area of rectangle = " (term length ("*" width)))))))
+    (else
+     (suite
+      (expr (indexed print (called " Not a valid shape. try again")))))))))
+

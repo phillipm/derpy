@@ -1,0 +1,2 @@
+(program (= (m s) (tuple "monkey" "spam")))
+

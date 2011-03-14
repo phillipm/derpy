@@ -1,0 +1,5 @@
+(program
+ (expr (indexed a (dot f)))
+ (expr (indexed b (dot fg) (called)))
+ (= (s) (arith 1 ("+" 0+2.0i))))
+

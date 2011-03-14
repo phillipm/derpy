@@ -1,7 +1,5 @@
-{-
-Phillip Mates
-u0284736
--}
+-- Phillip Mates u0284736
+
 
 module PythonLexer (lexInput, showLexOutput, Token(..)) where
 
@@ -518,7 +516,4 @@ escapeRaw (c:cs) = c:(escapeRaw cs)
 escapeChars :: String
 escapeChars = "'\"abfnrtvoxNuU"
 
-{-
-Phillip Mates
-u0284736
--}
+-- Phillip Mates u0284736

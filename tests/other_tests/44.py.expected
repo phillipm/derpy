@@ -1,0 +1,5 @@
+(program
+ (expr (list 42 3.14 "hello"))
+ (expr (tuple 100 200 300))
+ (expr (dict ("x" 42) ("y" 3.14))))
+

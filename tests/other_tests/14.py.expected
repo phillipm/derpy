@@ -1,0 +1,10 @@
+(program
+ (cond
+  ((and (comparison 1900 ("<" year) ("<" 2100))
+        (comparison 1 ("<=" month) ("<=" 12))
+        (comparison 1 ("<=" day) ("<=" 31))
+        (comparison 0 ("<=" hour) ("<" 24))
+        (comparison 0 ("<=" minute) ("<" 60))
+        (comparison 0 ("<=" second) ("<" 60)))
+   (suite (return 1)))))
+

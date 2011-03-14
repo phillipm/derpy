@@ -1,0 +1,2 @@
+(program (= (str) "foo \\ tttt"))
+

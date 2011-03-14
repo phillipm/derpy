@@ -1,0 +1,8 @@
+(program
+ (= (myList) (list 1 2 3 4))
+ (for
+  index
+  (indexed range (called (indexed len (called myList))))
+  (suite ("+=" ((indexed myList (subscript index))) 1)))
+ (expr (indexed print (called myList))))
+

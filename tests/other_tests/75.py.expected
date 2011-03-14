@@ -1,0 +1,16 @@
+(program
+ (def
+  (pair_13 nums)
+  (suite
+   (for
+    i
+    (indexed range (called (arith (indexed len (called nums)) ("-" 1))))
+    (suite
+     (cond
+      ((and (comparison (indexed nums (subscript i)) ("==" 13))
+            (comparison
+             (indexed nums (subscript (arith i ("+" 1))))
+             ("==" 13)))
+       (suite (return True))))))
+   (return False))))
+

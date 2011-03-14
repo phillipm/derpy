@@ -1,0 +1,9 @@
+(program
+ (=
+  ((or (and (comparison a ("<" b))
+            (comparison b ("<=" c))
+            (comparison c (">" d)))
+       (comparison z (">=" f))
+       a))
+  b))
+

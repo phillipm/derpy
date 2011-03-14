@@ -1,0 +1,8 @@
+(program
+ (expr 0+3.14i)
+ (expr 0+10.0i)
+ (expr 0+10i)
+ (expr 0+0.001i)
+ (expr 0+1e+100i)
+ (expr 0+3.14e-10i))
+

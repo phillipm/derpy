@@ -1,0 +1,8 @@
+(program
+ (= (a) (arith 1 ("+" 1)))
+ (= (b) (term 2 ("%" 3)))
+ (= (c) (bitwise-xor 1 1))
+ (= (d) (arith 1 ("-" 1)))
+ (= (f) (term 1 ("*" 1)))
+ (= (g) (term 1 ("/" 1))))
+

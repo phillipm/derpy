@@ -1,0 +1,9 @@
+(program
+ (def
+  (a_bigger a b)
+  (suite
+   (cond
+    ((and (comparison a (">" b)) (comparison (arith a ("-" b)) (">=" 2)))
+     (suite (return True)))
+    (else (suite (return False)))))))
+

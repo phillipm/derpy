@@ -1,0 +1,2 @@
+(program (for i (indexed range (called 10)) (suite ("+=" (sum) 1))))
+

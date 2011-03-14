@@ -1,0 +1,15 @@
+(program
+ (def
+  (two_e str)
+  (suite
+   (= (count) 0)
+   (for
+    ch
+    str
+    (suite
+     (cond
+      ((comparison ch ("==" "e")) (suite (= (count) (arith count ("+" 1))))))))
+   (cond
+    ((comparison count ("==" 2)) (suite (return True)))
+    (else (suite (return False)))))))
+

@@ -1,0 +1,9 @@
+(program
+ (def
+  (sum n)
+  (suite
+   (= (result) 0)
+   (= (i) 1)
+   (while (comparison i ("<=" n)) (suite ("+=" (result) i) ("+=" (i) 1)))
+   (return result))))
+

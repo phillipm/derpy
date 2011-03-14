@@ -1,0 +1,2 @@
+(program (while True (suite (= (a) 1))))
+

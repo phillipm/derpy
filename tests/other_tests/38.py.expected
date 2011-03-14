@@ -1,0 +1,2 @@
+(program (= (a) "\\\" \\n \\t valid raw string"))
+

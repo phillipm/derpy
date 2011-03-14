@@ -1,0 +1,13 @@
+(program
+ (def
+  (Fibonacci n)
+  (suite
+   (cond
+    ((or (comparison n ("==" 0)) (comparison n ("==" 1))) (suite (return n)))
+    (else
+     (suite
+      (return
+       (arith
+        (indexed Fibonacci (called (arith n ("-" 1))))
+        ("+" (indexed Fibonacci (called (arith n ("-" 2)))))))))))))
+

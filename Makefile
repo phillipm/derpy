@@ -22,7 +22,7 @@ parse:
 
 # lex input from STDIN
 lex:
-	./dist/build/pylexer/pylexer
+	@./dist/build/pylexer/pylexer
 
 clean:
 	cabal clean
