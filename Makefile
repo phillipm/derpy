@@ -1,25 +1,12 @@
 # Phillip Mates
 # u0284736
 
-PACKAGE = package
-VERSION = ` date "+%Y.%m%d%" `
-RELEASE_DIR  = ..
-RELEASE_FILE = $(PACKAGE)-$(VERSION)
-
 # build parser
-all:
-	cabal configure
-	cabal build
+all: compile
 
-# build parser
-pyparser:
-	cabal configure
-	cabal build
-
-# build lexer
-pylexer:
-	cabal configure
-	cabal build
+compile:
+	@cabal configure > /dev/null
+	@cabal build > /dev/null
 
 # target: help - Display callable targets.
 help:
@@ -31,11 +18,23 @@ run:
 
 # parse lexed input from STDIN
 parse:
-	./dist/build/pyparser/pyparser
+	@./dist/build/pyparser/pyparser
 
 # lex input from STDIN
-lex: pylexer
+lex:
 	./dist/build/pylexer/pylexer
+
+clean:
+	cabal clean
+
+sdiff: sdiff.rkt
+	raco exe sdiff.rkt
+
+test: compile sdiff
+	for i in tests/*.py; do make -s parse < $$i > $$i.out; ./sdiff $$i.out $$i.expected; done
+
+other_test: compile sdiff
+	for i in tests/other_tests/*.py; do make -s parse < $$i > $$i.out; ./sdiff $$i.out $$i.expected; done
 
 # Phillip Mates
 # u0284736
