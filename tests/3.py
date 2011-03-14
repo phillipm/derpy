@@ -1,5 +1,5 @@
 try:
   print (3)
-finally:
+except:
   print (10)
 
