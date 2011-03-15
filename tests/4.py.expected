@@ -1,7 +1,17 @@
 (program
- (try
-  (suite (raise "boo"))
-  (((except) (suite (expr (indexed print (called "excepted!"))))))
-  #f
-  #f))
+ (=
+  (month)
+  (list
+   "Januari"
+   "Februari"
+   "Maart"
+   "April"
+   "Mei"
+   "Juni"
+   "Juli"
+   "Augustus"
+   "September"
+   "Oktober"
+   "November"
+   "December")))
 

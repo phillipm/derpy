@@ -1,8 +1,3 @@
-x = 20
+# string test
+s = "he said it is \"ok \t \n \" "
 
-while x > 0:
-  x = x - 1
-  print(x)
-else:
-  print("didn't run\n")
-  

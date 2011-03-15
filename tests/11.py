@@ -1,15 +1,26 @@
-cache = { 0: 0, 1 : 1 } 
+# Comment 1
+ # Comment 2
 
-def fib(n):
-   if n in cache:
-     return cache[n]
- 
-   cache[n] = fib(n-1) + fib(n-2)
+# Factorial:
 
-   return cache[n]
+def fact(  x\
+):
 
-print(fib(25))
+  if x == -1: # Comment 3
+    return 1.j
+
+  elif x ==0:
+
+    return 1
+  else:
+
+        return x* fact(x
+
+- 1)
+
+s = "foo\
+\\ \n\'\""
 
 
-
+fact(20)
 

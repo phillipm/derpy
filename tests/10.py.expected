@@ -1,12 +1,13 @@
 (program
- (def (f) (suite (expr (indexed print (called "called f"))) (return 1)))
- (def (g) (suite (expr (indexed print (called "called g"))) (return 0)))
- (= (a) (list (list 10 20) (list 30 40) (list 50 60)))
- ("+="
-  ((indexed
-    a
-    (subscript (indexed f (called)))
-    (subscript (indexed g (called)))))
-  30)
- (expr (indexed print (called (indexed a (subscript (indexed f (called))))))))
+ (def
+  (fact x)
+  (suite
+   (cond
+    ((comparison x ("==" ("-" 1))) (suite (return 0+1.0i)))
+    ((comparison x ("==" 0)) (suite (return 1)))
+    (else
+     (suite
+      (return (term x ("*" (indexed fact (called (arith x ("-" 1))))))))))))
+ (= (s) "foo\\ \n'\"")
+ (expr (indexed fact (called 20))))
 

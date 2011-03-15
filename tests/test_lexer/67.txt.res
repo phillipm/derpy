@@ -1,0 +1,13 @@
+(ID "print")
+(LIT "%s, %s, %s")
+(PUNCT "%")
+(PUNCT "(")
+(ID "b")
+(PUNCT ",")
+(ID "v")
+(PUNCT ",")
+(ID "e")
+(PUNCT ")")
+(NEWLINE)
+(ENDMARKER)
+
