@@ -33,5 +33,8 @@ sdiff: sdiff.rkt
 test: compile sdiff
 	for i in tests/*.py; do make -s parse < $$i > $$i.out; ./sdiff $$i.out $$i.expected; done
 
+test_lexer: compile sdiff
+	for i in tests/test_lexer/*.txt; do make -s lex < $$i > $$i.out; echo "$$i"; ./sdiff $$i.out $$i.res;  done
+
 # Phillip Mates
 # u0284736

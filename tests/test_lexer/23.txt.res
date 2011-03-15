@@ -1,0 +1,10 @@
+(ID "a")
+(PUNCT "=")
+(LIT 1)
+(NEWLINE)
+(ID "b")
+(PUNCT "=")
+(LIT 2)
+(NEWLINE)
+(ENDMARKER)
+

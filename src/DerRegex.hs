@@ -1,8 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
-{-
-Phillip Mates
-u0284736
--}
+-- Phillip Mates u0284736
 
 -- David Darais' Derivative Regex Library
 -- The Regex module provides all the tools necessary for building and matching
@@ -161,3 +158,5 @@ derRegexTests = TestList
   , TestCase . assertBool "" $ star (seqOf "abc") <.> op (seqOf "x") `match` "abcabcd" == Just ("abcabc", 6, "d")
   ]
   -}
+
+-- Phillip Mates u0284736

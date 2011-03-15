@@ -1,6 +1,5 @@
 -- Phillip Mates u0284736
 
-
 module PythonLexer (lexInput, showLexOutput, Token(..)) where
 
 -- Haskell imports
@@ -72,15 +71,15 @@ convertHex (c:cs) = c:(convertHex cs)
 joinStringLits :: [Token] -> [Token] -> [Token]
 joinStringLits (t:ts) toJoin =
   case t of
-    InterStringLit x _ -> joinStringLits ts (t:toJoin)
-    StringLit x -> if null toJoin
+    InterStringLit _ _ -> joinStringLits ts (t:toJoin)
+    StringLit _ -> if null toJoin
                       then (escapeToken t) : joinStringLits ts []
                       else joined : joinStringLits ts [] where
                       joined = escapeToken $ StringLit $ joinTokens $ t:toJoin
     _ -> t : joinStringLits ts toJoin
 
 joinStringLits [] [] = []
-joinStringLits [] (x:xs) =
+joinStringLits [] (_:_) =
   [Error "Error joining strings in post processing. Look for unmatched strings"]
 
 -- Join tokens into a string
@@ -103,6 +102,7 @@ escapeToken t =
   case t of
        StringLit s -> StringLit $ escapeBackslash $ convertHex $ convertOct s
        InterStringLit s _ -> InterStringLit (escapeBackslash $ convertHex $ convertOct s) ""
+       x -> x
 
 -- -- -- -- -- -- -- --
 -- Lexer functions
@@ -155,7 +155,7 @@ addNewLineToken (x:xs) [] _ = case last (x:xs) of
                                    InterStringLit _ _ -> []
                                    RStringInt _ _ -> []
                                    _ -> [Newline]
-addNewLineToken (x:xs) (p:ps) _ = [] -- in nested paren, no newline
+addNewLineToken (_:_) (_:_) _ = [] -- in nested paren, no newline
 
 -- [IndentStack] -> [ParenthesisStack] -> string -> ([Token], [IndentStack], [ParenthesisStack])
 -- Lex Single Line
@@ -243,7 +243,7 @@ lexStringCont s (p:ps) = (tokens, newPStack)
 
   (matchedToken, restStr) = case inter of
                                  Nothing -> (Error "String Lexing error", "")
-                                 Just (t, _, s) -> (t, s)
+                                 Just (t, _, rst) -> (t, rst)
   inter = case p of
                "\"" -> matchRegexWithToken (doubleQuoteShortContRegex, StringLit "") s "\""
                "'" -> matchRegexWithToken (singleQuoteShortContRegex, StringLit "") s "\'"
@@ -260,6 +260,7 @@ popPStack :: [String] -> [String]
 popPStack (p:ps) | (or [p'==")", p'=="]", p'=="}"]) = slashes ++ ps'
                  | otherwise = []
                     where (slashes, (p':ps')) = span (\x-> x=="\\") $ (p:ps)
+popPStack [] = []
 
 
 -- StringToTokenize -> [ParenthesisStack] -> ([Token], [ParenthesisStack])
@@ -455,6 +456,7 @@ dedentStack (l:ls) newLevel = case compare l newLevel of
               GT -> ([Dedent] ++ futTokens, newStack) where
                     (futTokens, newStack) = dedentStack ls newLevel
               EQ -> ([], (l:ls))
+dedentStack [] _ = ([],[])
 
 -- -- -- -- -- --
 -- Display

@@ -1,0 +1,13 @@
+(KEYWORD def)
+(ID "myfunc")
+(PUNCT "(")
+(PUNCT ")")
+(PUNCT ":")
+(NEWLINE)
+(INDENT)
+(ID "print")
+(ID "number")
+(NEWLINE)
+(DEDENT)
+(ENDMARKER)
+

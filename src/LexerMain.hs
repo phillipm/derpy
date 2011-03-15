@@ -1,8 +1,7 @@
 -- Phillip Mates u0284736
 
 -- Haskell imports
-import System.Environment
-import System.IO (hGetContents, hGetLine, stdin)
+import System.IO (hGetContents, stdin)
 
 import qualified PythonLexer as Pylex
 
