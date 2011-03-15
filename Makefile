@@ -26,6 +26,7 @@ lex:
 
 clean:
 	cabal clean
+	rm -f sdiff
 
 sdiff: sdiff.rkt
 	raco exe sdiff.rkt
