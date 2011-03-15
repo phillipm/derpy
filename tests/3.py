@@ -1,5 +1,5 @@
-try:
-  print (3)
-except:
-  print (10)
+def hello(x
+,y
+]
+ return  1.foo
 

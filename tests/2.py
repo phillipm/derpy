@@ -1,11 +1,8 @@
-def fact(n):
-  if (n < 0):
-    return False
-  elif n == 0:
-    return 1
-  else:
-    return n * fact(n-1)
+# comment
 
-print(fact(5))
-
+def f(x):
+ if (x == 10):
+  return 20
+ else
+  return f(x-1)
 

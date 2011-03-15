@@ -1,14 +1,26 @@
-def f():
- print("called f")
- return 1
+# Comment 1
+ # Comment 2
 
-def g():
- print("called g")
- return 0
+# Factorial:
 
-a = [[10,20],[30,40],[50,60]]
+def fact(  x\
+):
 
-a[f()][g()] += 30
+  if x == -1:
+    return 1.j
 
-print(a[f()])
+  elif x ==0:
+
+    return 1
+  else:
+
+        return x* fact(x
+
+- 1)
+
+s = "foo\
+\\ \n\'\""
+
+
+fact(20)
 

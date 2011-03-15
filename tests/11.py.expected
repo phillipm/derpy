@@ -1,16 +1,13 @@
 (program
- (= (cache) (dict (0 0) (1 1)))
  (def
-  (fib n)
+  (fact x)
   (suite
    (cond
-    ((comparison n ("in" cache))
-     (suite (return (indexed cache (subscript n))))))
-   (=
-    ((indexed cache (subscript n)))
-    (arith
-     (indexed fib (called (arith n ("-" 1))))
-     ("+" (indexed fib (called (arith n ("-" 2)))))))
-   (return (indexed cache (subscript n)))))
- (expr (indexed print (called (indexed fib (called 25))))))
+    ((comparison x ("==" ("-" 1))) (suite (return 0+1.0i)))
+    ((comparison x ("==" 0)) (suite (return 1)))
+    (else
+     (suite
+      (return (term x ("*" (indexed fact (called (arith x ("-" 1))))))))))))
+ (= (s) "foo\\ \n'\"")
+ (expr (indexed fact (called 20))))
 

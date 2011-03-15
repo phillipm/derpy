@@ -1,7 +1,5 @@
 (program
- (= (a) 10)
- (= (x y) (tuple 42 1701))
- (expr (indexed print (called a)))
- (expr (indexed print (called x)))
- (expr (indexed print (called y))))
+ (=
+  (hello)
+  "This is a rather long string containing\\n\\\n    several lines of text much as you would do in C."))
 

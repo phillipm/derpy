@@ -1,7 +1,2 @@
-(program
- (= (x) 20)
- (while
-  (comparison x (">" 0))
-  (suite (= (x) (arith x ("-" 1))) (expr (indexed print (called x))))
-  (suite (expr (indexed print (called "didn't run\n"))))))
+(program (= (s) "he said it is \"ok \t \n \" "))
 
