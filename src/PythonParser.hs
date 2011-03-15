@@ -218,11 +218,12 @@ comparison = star_expr <~> comp_opRep ==> red
 comp_opRep :: Parser String
 comp_opRep = p
   where p = eps "" <|> comp_op <~> star_expr <~> p
-             ==> (\(cop,(e,r)) -> catWSpace ("(\"" ++ cop ++ "\" " ++ e ++ ")") r)
+             ==> (\(cop,(e,r)) -> catWSpace ("(" ++ cop ++ " " ++ e ++ ")") r)
 
 comp_op :: Parser String
-comp_op =     ter "<" <|> ter ">" <|> ter "==" <|> ter ">="
-          <|> ter "<=" <|> ter "<>" <|> ter "!=" <|> ter "in"
+comp_op =     (ter "<" <|> ter ">" <|> ter "==" <|> ter ">="
+          <|> ter "<=" <|> ter "<>" <|> ter "!=") ==> (\x->"\""++x++"\"")
+          <|> ter "in"
           <|> (ter "not" <~> ter "in" ==> (\_->"not-in"))
           <|> (ter "is" <~> ter "not" ==> (\_->"is-not"))
 
@@ -252,7 +253,7 @@ and_exprRep = p
 and_expr :: Parser String
 and_expr = shift_expr <~> shift_exprRep ==> red
   where red (se, []) = se
-        red (se, ser) = "(bitwise-and (" ++ se ++ ") (" ++ ser ++ "))"
+        red (se, ser) = "(bitwise-and " ++ se ++ " " ++ ser ++ ")"
 
 shift_exprRep :: Parser String
 shift_exprRep = p

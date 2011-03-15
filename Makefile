@@ -33,8 +33,5 @@ sdiff: sdiff.rkt
 test: compile sdiff
 	for i in tests/*.py; do make -s parse < $$i > $$i.out; ./sdiff $$i.out $$i.expected; done
 
-other_test: compile sdiff
-	for i in tests/other_tests/*.py; do make -s parse < $$i > $$i.out; ./sdiff $$i.out $$i.expected; done
-
 # Phillip Mates
 # u0284736
