@@ -1,6 +1,6 @@
 -- Phillip Mates u0284736
 
-module PythonParser (file_input) where
+module PythonParser (file_input, catWSpace) where
 
 import Text.Derp
 
@@ -39,7 +39,10 @@ stmt = simple_stmt <|> compound_stmt
 
 simple_stmt :: Parser String
 simple_stmt = small_stmt <~> small_stmtRep <~> (eps "" <|> ter ";") <~> ter "newline"
-              ==> (\(x,(x2,_)) -> catWSpace x x2)
+              ==> (\(x,(x2,_)) -> if null x2
+                                     then x
+                                     else "(begin " ++ x ++ " " ++ x2 ++ ")")
+
 
 small_stmt :: Parser String
 small_stmt =     expr_stmt <|> del_stmt <|> pass_stmt <|> flow_stmt
@@ -48,7 +51,7 @@ small_stmt =     expr_stmt <|> del_stmt <|> pass_stmt <|> flow_stmt
 small_stmtRep :: Parser String
 small_stmtRep = p
   where p =     eps ""
-            <|> ter ";" <~> small_stmt <~> p ==> (\(_,(stm,r)) -> "(" ++ (catWSpace stm r) ++ ")")
+            <|> ter ";" <~> small_stmt <~> p ==> (\(_,(stm,r)) -> catWSpace stm r)
 
 expr_stmt :: Parser String
 expr_stmt =     testlist <~> augassign <~> testlist
