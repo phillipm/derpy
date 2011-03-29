@@ -1,11 +1,11 @@
-This is a Derivative based lexer and parser for a subset of Python3.
+This is a derivative based lexer and parser for a subset of Python3.
 
-It is based on a assignment from Spring11 Compilers at the University of Utah.
+More info on parsing with derivatives: http://matt.might.net/articles/parsing-with-derivatives/
 
-Further details can be found at http://matt.might.net/teaching/compilers/spring-2011/#projects
+This software was for a project from Spring11 Compilers at the University of Utah. Further details on the project: http://matt.might.net/teaching/compilers/spring-2011/#projects
 
-Notes:
-  This is my first piece of Haskell software. No guarentees on good style or code correctness.
+Note:
+  This is my first piece of Haskell software. No guarantees on good style or code correctness.
 
   The lexer currently doesn't handle carriages (\r style newlines)
 
