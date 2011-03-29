@@ -1,7 +1,7 @@
 -- Description:
-Name:           PyParser
+Name:           Derpy
 Version:        0.1
-Synopsis:       A Simple Python Lexer
+Synopsis:       A Simple Python3 Parser & Lexer
 -- Copyright:
 License:        BSD3
 License-File:   LICENSE

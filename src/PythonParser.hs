@@ -1,5 +1,3 @@
--- Phillip Mates u0284736
-
 module PythonParser (file_input, catWSpace) where
 
 import Text.Derp
@@ -372,5 +370,3 @@ arglist = test <~> argRep <~> (eps "" <|> ter ",") ==> (\(t,(ar,_)) -> catWSpace
 catWSpace :: String -> String -> String
 catWSpace x (y:ys) = x ++ " " ++ (y:ys)
 catWSpace x [] = x
-
--- Phillip Mates u0284736

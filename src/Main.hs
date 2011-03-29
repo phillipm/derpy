@@ -1,5 +1,3 @@
--- Phillip Mates u0284736
-
 -- Haskell imports
 import System.IO (hGetContents, stdin)
 import Data.Set (toList)
@@ -48,4 +46,3 @@ toToken Pylex.Endmarker = Token "endmarker" "endmarker"
 toToken Pylex.LineCont = Token "linecont" "linecont"
 toToken _ = error "incorrect input token from lexer"
 
--- Phillip Mates u0284736

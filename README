@@ -1,5 +1,15 @@
-1. Phillip Mates u0284736
-2.
+This is a Derivative based lexer and parser for a subset of Python3.
+
+It is based on a assignment from Spring11 Compilers at the University of Utah.
+
+Further details can be found at http://matt.might.net/teaching/compilers/spring-2011/#projects
+
+Notes:
+  This is my first piece of Haskell software. No guarentees on good style or code correctness.
+
+  The lexer currently doesn't handle carriages (\r style newlines)
+
+Building:
   Cabal build system (Haskell's build system)
   GHC >= 7.0.1
   Text.Derp package for Haskell
@@ -9,10 +19,26 @@
     cabal install derp
     cabal install 'base >= 4.3'
 
-3. My parser cannot currently take in prelexed input since it receives the lexed data in a custom Haskell data-structure and I didn't take the time to write an S-Expression reader. I have fixed my lexer from project 1. To test the lexer, type "make test_lexer". My lexer currently doesn't handle carriages (\r style newlines)
+Running:
+  # compile
+  cabal configure
+  cabal build
 
-4.
-  - readme.txt: you are here
+  # run lexer
+  make lex < tests/test_lexer/1.py
+
+  # run parser
+  make parse < tests/1.py
+
+  # run parser test suite
+  make test
+
+  # run lexer test suite
+  make test_lexer
+
+
+Manifest:
+  - README: you are here
   - Makefile: for running cabal commands and running lexer & parser. Adheres to makefile structure defined in assignment
   - pyparser.cabal: cabal build file, like Makefile for the Haskell build system
   - Setup.hs: Basic setup file for cabal build

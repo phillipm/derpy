@@ -1,5 +1,4 @@
 {-# LANGUAGE TemplateHaskell #-}
--- Phillip Mates u0284736
 
 -- David Darais' Derivative Regex Library
 -- The Regex module provides all the tools necessary for building and matching
@@ -159,4 +158,3 @@ derRegexTests = TestList
   ]
   -}
 
--- Phillip Mates u0284736
