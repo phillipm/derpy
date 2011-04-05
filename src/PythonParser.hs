@@ -68,7 +68,7 @@ del_stmt :: Parser String
 del_stmt = ter "del" <~> star_expr ==> (\(_,e)-> "(del " ++ e ++ ")")
 
 pass_stmt :: Parser String
-pass_stmt = ter "pass" ==> (\_->"(pass)")
+pass_stmt = ter "pass" ==> (\_->"pass")
 
 flow_stmt :: Parser String
 flow_stmt = break_stmt <|> continue_stmt <|> return_stmt <|> raise_stmt
@@ -77,7 +77,7 @@ break_stmt :: Parser String
 break_stmt = ter "break" ==> (\_->"(break)")
 
 continue_stmt :: Parser String
-continue_stmt = ter "continue" ==> (\_->"continue")
+continue_stmt = ter "continue" ==> (\_->"(continue)")
 
 return_stmt :: Parser String
 return_stmt = ter "return" <~> (eps "" <|> testlist) ==> (\(_,tl) -> (catWSpace "(return" tl) ++ ")")
@@ -114,7 +114,7 @@ if_stmt =     ter "if" <~> test <~> ter ":" <~> suite
           <~> elifRep
           <~> (eps "" <|> (ter "else" <~> ter ":" <~> suite ==> (\(_,(_,s))->"(else (" ++ s ++ "))")))
           ==> red
-  where red (_,(t,(_,(s,(elif,els))))) = 
+  where red (_,(t,(_,(s,(elif,els))))) =
           (catWSpace (catWSpace ("(cond (" ++ t ++ " (" ++ s ++ "))") elif) els) ++ ")"
 
 
@@ -227,6 +227,7 @@ comp_op =     (ter "<" <|> ter ">" <|> ter "==" <|> ter ">="
           <|> ter "in"
           <|> (ter "not" <~> ter "in" ==> (\_->"not-in"))
           <|> (ter "is" <~> ter "not" ==> (\_->"is-not"))
+          <|> (ter "is" ==> (\_->"is"))
 
 star_expr :: Parser String
 star_expr = (eps "" <|> ter "*") <~> expr ==> red
@@ -236,7 +237,7 @@ star_expr = (eps "" <|> ter "*") <~> expr ==> red
 expr :: Parser String
 expr = xor_expr <~> xor_exprRep ==> red
   where red (xe, []) = xe
-        red (xe, xer) = "bitwise-xor " ++ xe ++ " " ++ xer ++ ")"
+        red (xe, xer) = "(bitwise-or " ++ xe ++ " " ++ xer ++ ")"
 
 xor_exprRep :: Parser String
 xor_exprRep = p
@@ -263,12 +264,12 @@ shift_exprRep = p
 shift_expr :: Parser String
 shift_expr = arith_expr <~> arith_exprRep ==> red
   where red (ae, []) = ae
-        red (ae, aer) = "shift " ++ catWSpace ae aer
+        red (ae, aer) = "(shift " ++ (catWSpace ae aer) ++ ")"
 
 arith_exprRep :: Parser String
 arith_exprRep = p
   where p = eps "" <|> (ter "<<" <|> ter ">>") <~> arith_expr <~> p
-            ==> (\(op,(ae,r)) -> catWSpace ("(" ++ op ++ " " ++ ae ++ ")") r)
+            ==> (\(op,(ae,r)) -> catWSpace ("(\"" ++ op ++ "\" " ++ ae ++ ")") r)
 
 arith_expr :: Parser String
 arith_expr = term <~> addRep ==> red
@@ -307,16 +308,16 @@ power = indexed <~> (powFac <|> eps "") ==> red
         red (ind, pf) = "(power " ++ ind ++ " " ++ pf ++ ")"
 
 atom :: Parser String
-atom = ter "(" <~> (tuple_or_test <|> eps "") <~> ter ")" ==> (\(_,(tup,_)) -> tup) <|>
-       ter "[" <~> (testlist <|> eps "") <~> ter "]" ==> (\(_,(list,_))-> "(list " ++ list ++ ")") <|>
-       ter "{" <~> (dictorsetmaker <|> eps "") <~> ter "}" ==> (\(_,(dict,_))-> dict) <|>
-       ter "id" ==> (\x->x) <|>
-       ter "lit" ==> (\x->x) <|>
-       strRep ==> (\x-> "\"" ++ x ++ "\"") <|>
-       ter "..." ==> (\_->"") <|> -- FIXME: reduction
-       ter "None" ==> (\_->"None") <|>
-       ter "True" ==> (\_->"True") <|>
-       ter "False" ==> (\_->"False")
+atom = ter "(" <~> (tuple_or_test <|> eps "") <~> ter ")" ==> (\(_,(tup,_)) -> tup)
+   <|> ter "[" <~> (testlist <|> eps "") <~> ter "]" ==> (\(_,(list,_))-> "(list " ++ list ++ ")")
+   <|> ter "{" <~> (dictorsetmaker <|> eps "") <~> ter "}" ==> (\(_,(dict,_)) -> if null dict then "(dict)" else dict)
+   <|> ter "id" ==> (\x->x)
+   <|> ter "lit" ==> (\x->x)
+   <|> strRep ==> (\x-> "\"" ++ x ++ "\"")
+   <|> ter "..." ==> (\_->"") -- FIXME: reduction
+   <|> ter "None" ==> (\_->"None")
+   <|> ter "True" ==> (\_->"True")
+   <|> ter "False" ==> (\_->"False")
 
 strRep:: Parser String
 strRep = ter "string" <~> p ==> (\(x,y) -> x ++ y)
@@ -352,8 +353,10 @@ argRep = p
 
 dictorsetmaker :: Parser String
 dictorsetmaker = x1 <|> x2
-  where x1 = test <~> ter ":" <~> test <~> testColRep <~> (eps "" <|> ter ",") ==> (\(k,(_,(v,(r,_)))) -> (catWSpace ("(dict (" ++ k ++ " " ++ v ++ ")") r) ++ ")") -- FIXME: reduction
-        x2 = test <~> testComRep <~> (eps "" <|> ter ",") ==> (\(t,(tr,(_)))-> (catWSpace ("(set " ++ t) tr) ++ ")") -- FIXME: reduction
+  where
+    x1 = test <~> ter ":" <~> test <~> testColRep <~> (eps "" <|> ter ",") ==>
+           (\(k,(_,(v,(r,_)))) -> (catWSpace ("(dict (" ++ k ++ " " ++ v ++ ")") r) ++ ")")
+    x2 = test <~> testComRep <~> (eps "" <|> ter ",") ==> (\(t,(tr,(_)))-> (catWSpace ("(set " ++ t) tr) ++ ")")
 
 testComRep :: Parser String
 testComRep = p
