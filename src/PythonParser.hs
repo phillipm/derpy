@@ -65,7 +65,7 @@ augassign =     ter "+=" <|> ter "-=" <|> ter "*=" <|> ter "/="
             <|> ter "<<=" <|> ter ">>=" <|> ter "**=" <|> ter "//="
 
 del_stmt :: Parser String
-del_stmt = ter "del" <~> star_expr ==> (\(_,e)-> e)
+del_stmt = ter "del" <~> star_expr ==> (\(_,e) -> "del " ++ e)
 
 pass_stmt :: Parser String
 pass_stmt = ter "pass" ==> (\_->"pass")
