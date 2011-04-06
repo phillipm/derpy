@@ -38,8 +38,8 @@ stmt = simple_stmt <|> compound_stmt
 simple_stmt :: Parser String
 simple_stmt = small_stmt <~> small_stmtRep <~> (eps "" <|> ter ";") <~> ter "newline"
               ==> (\(x,(x2,_)) -> if null x2
-                                     then x
-                                     else "(begin " ++ x ++ " " ++ x2 ++ ")")
+                                     then "(" ++ x ++ ")"
+                                     else "(begin (" ++ x ++ ") " ++ x2 ++ ")")
 
 
 small_stmt :: Parser String
@@ -49,15 +49,15 @@ small_stmt =     expr_stmt <|> del_stmt <|> pass_stmt <|> flow_stmt
 small_stmtRep :: Parser String
 small_stmtRep = p
   where p =     eps ""
-            <|> ter ";" <~> small_stmt <~> p ==> (\(_,(stm,r)) -> catWSpace stm r)
+            <|> ter ";" <~> small_stmt <~> p ==> (\(_,(stm,r)) -> catWSpace ("(" ++ stm ++ ")") r)
 
 expr_stmt :: Parser String
 expr_stmt =     testlist <~> augassign <~> testlist
                  ==> red
             <|> testlist <~> ter "=" <~> tuple_or_test
-                 ==> (\(var,(_,by))-> "(= (" ++ var ++ ") " ++ by ++ ")")
-            <|> tuple_or_test ==> (\x-> "(expr " ++ x ++ ")")
-    where red (var,(aug,by)) = "(\"" ++ aug ++ "\" " ++ "(" ++ var ++ ") " ++ by ++ ")"
+                 ==> (\(var,(_,by))-> "= (" ++ var ++ ") " ++ by)
+            <|> tuple_or_test ==> (\x-> "expr " ++ x)
+    where red (var,(aug,by)) = "\"" ++ aug ++ "\" " ++ "(" ++ var ++ ") " ++ by
 
 augassign :: Parser String
 augassign =     ter "+=" <|> ter "-=" <|> ter "*=" <|> ter "/="
@@ -65,7 +65,7 @@ augassign =     ter "+=" <|> ter "-=" <|> ter "*=" <|> ter "/="
             <|> ter "<<=" <|> ter ">>=" <|> ter "**=" <|> ter "//="
 
 del_stmt :: Parser String
-del_stmt = ter "del" <~> star_expr ==> (\(_,e)-> "(del " ++ e ++ ")")
+del_stmt = ter "del" <~> star_expr ==> (\(_,e)-> e)
 
 pass_stmt :: Parser String
 pass_stmt = ter "pass" ==> (\_->"pass")
@@ -74,24 +74,24 @@ flow_stmt :: Parser String
 flow_stmt = break_stmt <|> continue_stmt <|> return_stmt <|> raise_stmt
 
 break_stmt :: Parser String
-break_stmt = ter "break" ==> (\_->"(break)")
+break_stmt = ter "break" ==> (\_->"break")
 
 continue_stmt :: Parser String
-continue_stmt = ter "continue" ==> (\_->"(continue)")
+continue_stmt = ter "continue" ==> (\_->"continue")
 
 return_stmt :: Parser String
-return_stmt = ter "return" <~> (eps "" <|> testlist) ==> (\(_,tl) -> (catWSpace "(return" tl) ++ ")")
+return_stmt = ter "return" <~> (eps "" <|> testlist) ==> (\(_,tl) -> catWSpace "return" tl)
 
 raise_stmt :: Parser String
 raise_stmt =     ter "raise"
             <~> (eps "" <|> (test <~>
                               (eps "" <|> ter "from" <~> test ==> (\(_,t) -> t))
-                              ==> (\(t,f)-> catWSpace t f))
-                ) ==> (\(s1,s2) -> "(" ++ (catWSpace s1 s2) ++ ")")
+                              ==> (\(t,f)-> catWSpace t f))) 
+                 ==> (\(s1,s2) -> catWSpace s1 s2)
 
 global_stmt :: Parser String
 global_stmt = ter "global" <~> ter "id" <~> idRep
-              ==> (\(_,(i,ir))-> "(global " ++ (catWSpace i ir) ++ ")")
+              ==> (\(_,(i,ir))-> "global " ++ catWSpace i ir)
 
 idRep :: Parser String
 idRep = p
@@ -99,12 +99,12 @@ idRep = p
 
 nonlocal_stmt :: Parser String
 nonlocal_stmt = ter "nonlocal" <~> ter "id" <~> idRep
-                ==> (\(_,(i,ir))->"(nonlocal " ++ (catWSpace i ir) ++ ")")
+                ==> (\(_,(i,ir))->"nonlocal " ++ catWSpace i ir)
 
 assert_stmt:: Parser String
 assert_stmt =     ter "assert" <~> test
               <~> (eps "" <|> (ter "," <~> test) ==> (\(_,t)-> t))
-              ==> (\(_,(t1,t2))->"(assert " ++ (catWSpace t1 t2) ++ ")")
+              ==> (\(_,(t1,t2))-> "assert " ++ catWSpace t1 t2)
 
 compound_stmt :: Parser String
 compound_stmt = if_stmt <|> while_stmt <|> for_stmt <|> try_stmt <|> funcdef
